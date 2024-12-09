@@ -1,6 +1,6 @@
 
 
-use crate::token::token::Token;
+use crate::token::{token::Token, self};
 
 
 pub enum Expression {
@@ -15,17 +15,24 @@ impl Expression {
 
 #[derive(Default, Debug)]
 pub struct Identifier {
-    Token: Token,
+    token: Token,
     pub value: String,
 }
 
 impl Identifier {
+    pub fn new (t: Token, v: String) -> Self {
+        Self {
+            token: t,
+            value: v,
+        }
+    }
+
     fn identifier_node(&self) {
         // do nothing
     }
 
     pub fn token_literal(&self) -> &str {
-        &self.Token.literal
+        &self.token.literal
     }
     
 }

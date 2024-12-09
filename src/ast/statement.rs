@@ -1,4 +1,5 @@
 
+use crate::token;
 use crate::token::token::Token;
 use crate::ast::expression::Identifier;
 
@@ -14,7 +15,7 @@ impl Statement {
     pub fn token_literal(&self) -> &str {
         match self {
             Statement::Let(let_statement) => &let_statement.Token.literal,
-            // Statement::Return(returnstatement) => &returnstatement..Token.literal,
+            Statement::Return(return_statement) => &return_statement.Token.literal,
             _ => "",
         }
     }
@@ -49,6 +50,19 @@ impl LetStatement {
 
 #[derive(Debug)]
 pub struct Returnstatement {
-    // pub value: Box<Expression>
+    pub Token: Token,
+    // pub value: Expression,
+
 }
 
+impl Returnstatement {
+    pub fn new (t: Token) -> Self {
+        Self {
+            Token: t,
+        }
+    }
+
+    pub fn token_literal(&self) -> &str {
+        &self.Token.literal
+    }
+}

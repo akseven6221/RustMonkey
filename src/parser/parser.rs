@@ -2,7 +2,7 @@
 
 
 use crate::{token::token::{Token, TokenType}, 
-            lexer::lexer::Lexer, ast::{program::Program, statement::{LetStatement, Statement}, expression::{Identifier, Expression}}, 
+            lexer::lexer::Lexer, ast::{program::Program, statement::{LetStatement, Statement, Returnstatement}, expression::{Identifier, Expression}}, 
             
 };
 
@@ -34,7 +34,7 @@ impl Parser {
     fn parser_program(&mut self) -> Result<Program, ParserError> {
         let mut program = Program::default();
         
-        while self.cur_token.token_type != TokenType::Eof {
+        while !self.cur_token_is(TokenType::Eof) {
             let stmt = self.parser_statement()?;
             program.statements.push(stmt);
             self.next_token();
@@ -45,7 +45,8 @@ impl Parser {
     fn parser_statement(&mut self) -> Result<Statement, ParserError> {
         match self.cur_token.token_type {
             TokenType::Let      => self.parser_let_statement(),
-            _                   => self.parser_let_statement(),
+            TokenType::Return  => self.parser_return_statement(),
+            _                   => Err(ParserError::new("expected let or return statement".to_string())),
         }
     }
 
@@ -54,6 +55,8 @@ impl Parser {
 
         self.expect_peek(TokenType::Ident)?;
 
+        let name = Identifier::new(self.cur_token.clone(), self.cur_token.literal.clone());
+
         self.expect_peek(TokenType::Assign)?;
 
         // TODO: 跳过对表达式的处理，直到遇见分号
@@ -61,7 +64,19 @@ impl Parser {
             self.next_token();
         }
 
-        return Ok(Statement::Let(LetStatement::new(token, Identifier::default())));
+        return Ok(Statement::Let(LetStatement::new(token, name)));
+    }
+
+    fn parser_return_statement(&mut self) -> Result<Statement, ParserError> {
+        let token = self.cur_token.clone();
+
+        self.next_token();
+
+        while !self.cur_token_is(TokenType::Semicolon) {
+            self.next_token();
+        }
+
+        Ok(Statement::Return(Returnstatement::new(token)))
     }
 
     fn cur_token_is(&self, token_type: TokenType) -> bool {
@@ -77,7 +92,12 @@ impl Parser {
             self.next_token();
             Ok(())
         } else {
-            Err(ParserError::default())
+            Err(ParserError::new(
+                format!(
+                    "expected next token to be '{}', but got '{}' instead",
+                    token_type, self.peek_token.token_type
+                )
+            ))
         }
     }
 
@@ -86,7 +106,7 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use crate::{lexer::lexer::Lexer, parser::parser::Parser, ast::statement::Statement};
+    use crate::{lexer::lexer::Lexer, parser::{parser::Parser, error::{self, ParserError}}, ast::{statement::Statement, program::{self, Program}}};
 
 
     fn test_let_statement(stmt: &Statement, expected_identifier: &str) -> bool {
@@ -117,20 +137,14 @@ mod tests {
     }
 
     #[test]
-    fn test_parser() {
+    fn test_parser() -> Result<(), ParserError>{
         let l = Lexer::new(String::from("
             let x = 5;
             let y = 10; 
             let foobar = 838383;
         "));
         let mut p = Parser::new(l);
-        let program = p.parser_program();
-
-        if !program.is_ok() {
-            panic!("parse_program() returned None");
-        }
-     
-        let program = program.unwrap();
+        let program = p.parser_program()?;
     
         if program.statements.len() != 3 {
             panic!("program.statements does not contain 3 statements. got={}", program.statements.len());
@@ -141,13 +155,47 @@ mod tests {
             "y",
             "foobar",
         ];
-    
+
+        let mut flag = false;
+
+        let mut errors = String::new();
+
         for (i, &expected_identifier) in tests.iter().enumerate() {
             let stmt = &program.statements[i];
             if !test_let_statement(stmt, expected_identifier) {
-                return;
+                flag = true;
+                errors.push_str(&format!("test_let_statement failed for identifier: {}  ", expected_identifier));
             }
         }
+        if flag {
+            return Err(ParserError::new(errors));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_return_statement() -> Result<(), ParserError>{
+        let l = Lexer::new(String::from("
+            return 5; 
+            return 10; 
+            return 993 322;
+        "));
+        let mut p = Parser::new(l);
+        let program = p.parser_program()?;
+        if program.statements.len() != 3 {
+            panic!("program.statements does not contain 3 statements. got={}", program.statements.len());
+        }
+
+        for stmt in program.statements {
+            if let Statement::Return(return_stmt) = stmt {
+                if return_stmt.token_literal() != "return" {
+                    return Err(ParserError::new("return_stmt.token_literal() not 'return'. got=".to_string() + &return_stmt.token_literal()));
+                }
+            }
+        }
+        
+        Ok(())
+
     }
 
 }

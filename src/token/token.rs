@@ -1,6 +1,6 @@
 
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::{Display, Formatter}};
 use once_cell::sync::Lazy;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -38,6 +38,63 @@ pub enum TokenType {
     If,
     Else,
     Return,
+
+    EmptyLine,
+}
+
+impl Display for TokenType {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), std::fmt::Error> {
+        match self {
+            TokenType::Illegal => write!(f, "Illegal"),
+            TokenType::Eof => write!(f, "Eof"),
+
+            // Identifiers + literals
+            TokenType::Ident => write!(f, "Ident"),
+            TokenType::Int => write!(f, "int"),
+            TokenType::String => write!(f, "string"),
+
+            // Operators
+            TokenType::Assign => write!(f, "="),
+            TokenType::Plus => write!(f, "+"),
+            TokenType::Minus => write!(f, "-"),
+            TokenType::Bang => write!(f, "!"),
+            TokenType::Asterisk => write!(f, "*"),
+            TokenType::Slash => write!(f, "/"),
+
+            // TokenType::And => write!(f, "&&"),
+            // TokenType::Or => write!(f, "||"),
+            TokenType::Lt => write!(f, "<"),
+            TokenType::Gt => write!(f, ">"),
+            // TokenType::LtEq => write!(f, "<="),
+            // TokenType::GtEq => write!(f, ">="),
+
+            TokenType::Eq => write!(f, "=="),
+            TokenType::NotEq => write!(f, "!="),
+
+            TokenType::Comma => write!(f, ","),
+            // TokenType::Colon => write!(f, ":"),
+            TokenType::Semicolon => write!(f, ";"),
+
+            TokenType::LParen => write!(f, "("),
+            TokenType::RParen => write!(f, ")"),
+            TokenType::LBrace => write!(f, "{{"),
+            TokenType::RBrace => write!(f, "}}"),
+            // TokenType::LBracket => write!(f, "["),
+            // TokenType::RBracket => write!(f, "]"),
+
+            // Keywords
+            TokenType::Function => write!(f, "fn"),
+            TokenType::Let => write!(f, "let"),
+            TokenType::True => write!(f, "true"),
+            TokenType::False => write!(f, "false"),
+            TokenType::If => write!(f, "if"),
+            TokenType::Else => write!(f, "else"),
+            TokenType::Return => write!(f, "return"),
+
+            // Other
+            TokenType::EmptyLine => writeln!(f),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
