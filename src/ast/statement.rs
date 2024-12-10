@@ -1,5 +1,6 @@
 
-use crate::token;
+use std::fmt::{Display, Formatter};
+
 use crate::token::token::Token;
 use crate::ast::expression::Identifier;
 
@@ -11,16 +12,24 @@ pub enum Statement {
     Return(Returnstatement)
 }
 
+impl Display for Statement {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Statement::Let(let_statement) => write!(f, "{}", let_statement),
+            Statement::Return(return_statement) => write!(f, "{}", return_statement),
+        }
+    }
+}
+
 impl Statement {
     pub fn token_literal(&self) -> &str {
         match self {
-            Statement::Let(let_statement) => &let_statement.Token.literal,
+            Statement::Let(let_statement) => &let_statement.token.literal,
             Statement::Return(return_statement) => &return_statement.Token.literal,
             _ => "",
         }
     }
 }
-
 
 /** 
  * 一个用于标识符Identifier
@@ -29,9 +38,15 @@ impl Statement {
  * */
 #[derive(Debug)]
 pub struct LetStatement {
-    Token: Token,
+    token: Token,
     pub name: Identifier,
-    // value: Expression,
+    value: Expression,
+}
+
+impl Display for LetStatement {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "let {} = {};", self.name, self.value)
+    }
 }
 
 impl LetStatement {
@@ -39,12 +54,12 @@ impl LetStatement {
         // do nothing
     }
 
-    pub fn new(token: Token, name: Identifier) -> LetStatement {
-        LetStatement {Token: token, name: name}
+    pub fn new(token: Token, name: Identifier, exp: Expression) -> LetStatement {
+        LetStatement {token: token, name: name, value: exp}
     }
 
     pub fn token_literal(&self) -> &str {
-        &self.Token.literal
+        &self.token.literal
     }
 }
 
@@ -53,6 +68,12 @@ pub struct Returnstatement {
     pub Token: Token,
     // pub value: Expression,
 
+}
+
+impl Display for Returnstatement {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "return;")
+    }
 }
 
 impl Returnstatement {

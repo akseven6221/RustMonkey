@@ -130,3 +130,19 @@ impl Default for Token {
         }
     }
 }
+
+impl Token {
+    pub fn new(token_type: TokenType, literal: String) -> Self {
+        Token {
+            token_type,
+            literal,
+        }
+    }
+
+    // pub fn new_without_position(token_type: TokenType, literal: String) -> Self {
+    //     Token {
+    //         token_type,
+    //         literal,
+    //     }
+    // }
+}

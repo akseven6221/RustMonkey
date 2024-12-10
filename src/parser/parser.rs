@@ -45,7 +45,7 @@ impl Parser {
     fn parser_statement(&mut self) -> Result<Statement, ParserError> {
         match self.cur_token.token_type {
             TokenType::Let      => self.parser_let_statement(),
-            TokenType::Return  => self.parser_return_statement(),
+            TokenType::Return   => self.parser_return_statement(),
             _                   => Err(ParserError::new("expected let or return statement".to_string())),
         }
     }
@@ -64,7 +64,7 @@ impl Parser {
             self.next_token();
         }
 
-        return Ok(Statement::Let(LetStatement::new(token, name)));
+        return Ok(Statement::Let(LetStatement::new(token, name, Expression::Ident(Identifier::default()))));
     }
 
     fn parser_return_statement(&mut self) -> Result<Statement, ParserError> {
